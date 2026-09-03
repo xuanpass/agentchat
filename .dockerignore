@@ -1,0 +1,33 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+*.md
+!README.md
+
+# 构建产物
+web/dist
+server/dist
+
+# 测试
+server/tests
+e2e
+playwright-report
+test-results
+*.test.ts
+*.spec.ts
+
+# 数据
+*.db
+data/
+
+# IDE
+.vscode
+.idea
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

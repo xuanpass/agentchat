@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ── 单元测试 ──
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run unit tests
+        run: npm -w server run test
+        env:
+          AOC_SECRET: ci-test-secret-key-for-unit-tests-32chars
+
+  # ── E2E 测试 ──
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          cd e2e-pkg
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: |
+          cd e2e-pkg
+          npx playwright test
+        env:
+          PLAYWRIGHT_DOWNLOAD_HOST: https://cdn.npmmirror.com/binaries/playwright
+
+  # ── Docker 构建验证 ──
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t aoc:ci .
+
+      - name: Test Docker container
+        run: |
+          docker run -d --name aoc-test \
+            -e AOC_SECRET=ci-test-secret-key-32chars-minimum-required \
+            -e AOC_PORT=3001 \
+            -e AOC_HOST=0.0.0.0 \
+            -p 3001:3001 \
+            aoc:ci
+          sleep 5
+          curl -sf http://localhost:3001/api/health || (docker logs aoc-test && exit 1)
+          docker stop aoc-test

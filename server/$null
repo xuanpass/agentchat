@@ -1,0 +1,3 @@
+error: too many arguments for 'call'. Expected 1 argument but got 2.
+(node:10648) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `easyclaw --trace-deprecation ...` to show where the warning was created)

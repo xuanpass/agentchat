@@ -1,0 +1,32 @@
+{
+  "name": "agent-ops-console",
+  "version": "0.1.0",
+  "description": "接入远程智能体(openclaw/hermes/opencode)、组建团队、管理会话、共享技能的 Web 控制台",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n web,server -c cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
+    "dev:web": "npm -w web run dev",
+    "dev:server": "npm -w server run dev",
+    "build": "npm -w server run build && npm -w web run build",
+    "db:migrate": "npm -w server run db:migrate",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
+  },
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/ws": "^8.18.1",
+    "concurrently": "^9.2.4",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "tsx": "^4.23.5",
+    "vite": "^6.4.3",
+    "vue-tsc": "^3.3.9"
+  }
+}

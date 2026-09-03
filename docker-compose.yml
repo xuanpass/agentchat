@@ -1,0 +1,19 @@
+services:
+  aoc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - AOC_SECRET=${AOC_SECRET:-please-change-this-secret-key-in-production-32chars}
+      - AOC_PORT=3001
+      - AOC_HOST=0.0.0.0
+      - AOC_DB_PATH=/app/data/data.db
+      - AOC_CORS_ORIGIN=${AOC_CORS_ORIGIN:-true}
+    volumes:
+      - aoc-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  aoc-data:
