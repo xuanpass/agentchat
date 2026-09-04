@@ -147,7 +147,7 @@ async function loadPlugins() {
 }
 
 async function loadPopular() {
-  popular.value = await api.get<any[]>('/api/plugins/popular');
+  popular.value = await api.get('/plugins/popular');
 }
 
 function debounceSearch() {
@@ -181,7 +181,7 @@ function showReviewModal(p: any) {
 }
 
 async function submitReview() {
-  await api.post('/api/plugin-reviews', {
+  await api.post('/plugin-reviews', {
     capabilityId: reviewingPlugin.value.id,
     rating: reviewForm.value.rating,
     comment: reviewForm.value.comment,

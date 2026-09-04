@@ -139,14 +139,14 @@ function barHeight(tokens: number): number {
 
 async function loadSummary() {
   const qs = period.value ? `?period=${period.value}` : '';
-  const data = await api.get<any>(`/api/token-usage/summary${qs}`);
+  const data = await api.get<any>(`/token-usage/summary${qs}`);
   summary.value = data.tokens || { tokensTotal: 0, tokensIn: 0, tokensOut: 0, cost: 0 };
   daily.value = data.daily || [];
   byModel.value = data.byModel || [];
 }
 
 async function loadBySession() {
-  bySession.value = await api.get<any[]>('/api/token-usage/by-session');
+  bySession.value = await api.get('/token-usage/by-session');
 }
 
 async function loadAll() {
@@ -156,7 +156,7 @@ async function loadAll() {
 }
 
 async function submitRecord() {
-  await api.post('/api/token-usage', recordForm.value);
+  await api.post('/token-usage', recordForm.value);
   showRecordModal.value = false;
   recordForm.value = { tokensIn: 0, tokensOut: 0, model: '' };
   await loadAll();

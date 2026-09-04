@@ -143,11 +143,11 @@ const form = ref({
 });
 
 async function loadRules() {
-  rules.value = await api.get<any[]>('/api/alert-rules');
+  rules.value = await api.get('/alert-rules');
 }
 
 async function loadStats() {
-  stats.value = await api.get<any>('/api/alert-rules/stats');
+  stats.value = await api.get('/alert-rules/stats');
 }
 
 async function loadAll() {
@@ -171,7 +171,7 @@ async function submitRule() {
   if (editingRule.value) {
     await api.patch(`/api/alert-rules/${editingRule.value.id}`, form.value);
   } else {
-    await api.post('/api/alert-rules', form.value);
+    await api.post('/alert-rules', form.value);
   }
   showCreateModal.value = false;
   editingRule.value = null;
@@ -190,8 +190,8 @@ async function deleteRule(id: string) {
 }
 
 async function evaluateRules() {
-  const data = await api.post<any>('/api/alert-rules/evaluate', {});
-  evalResults.value = data.results || [];
+  const data = await api.post('/alert-rules/evaluate', {});
+  evalResults.value = (data as any).results || [];
   showEvalModal.value = true;
   await loadAll();
 }

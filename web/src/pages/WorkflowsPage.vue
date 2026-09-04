@@ -219,7 +219,7 @@ async function submitWorkflow() {
   if (editingWf.value) {
     await api.patch(`/api/workflows/${editingWf.value.id}`, wfForm.value);
   } else {
-    await api.post('/api/workflows', wfForm.value);
+    await api.post('/workflows', wfForm.value);
   }
   closeWfModal();
   await loadAll();
@@ -241,16 +241,16 @@ async function deleteWorkflow(id: string) {
 }
 
 async function loadRuns() {
-  runs.value = await api.get<any[]>('/api/workflow-runs?limit=50');
+  runs.value = await api.get('/workflow-runs?limit=50');
 }
 
 async function loadAll() {
   loading.value = true;
   const [wfs, st] = await Promise.all([
-    api.get<any[]>('/api/workflows'),
-    api.get<any>('/api/workflows/stats'),
+    api.get('/workflows'),
+    api.get('/workflows/stats'),
   ]);
-  workflows.value = wfs;
+  workflows.value = wfs as any[];
   stats.value = st;
   loading.value = false;
 }

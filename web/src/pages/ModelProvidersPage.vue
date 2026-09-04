@@ -161,9 +161,9 @@ function resetRuleForm() {
   ruleForm.value = { name: '', model: '', conditionType: 'default', conditionValue: '', priority: 100 };
 }
 
-async function loadProviders() { providers.value = await api.get<any[]>('/api/model-providers'); }
-async function loadRules() { rules.value = await api.get<any[]>('/api/routing-rules'); }
-async function loadStats() { stats.value = await api.get<any>('/api/model-providers/stats'); }
+async function loadProviders() { providers.value = await api.get('/model-providers'); }
+async function loadRules() { rules.value = await api.get('/routing-rules'); }
+async function loadStats() { stats.value = await api.get('/model-providers/stats'); }
 async function loadAll() { await Promise.all([loadProviders(), loadRules(), loadStats()]); }
 
 function editProvider(p: any) {
@@ -178,7 +178,7 @@ async function submitProvider() {
   if (editingProvider.value) {
     await api.patch(`/api/model-providers/${editingProvider.value.id}`, payload);
   } else {
-    await api.post('/api/model-providers', payload);
+    await api.post('/model-providers', payload);
   }
   showProviderModal.value = false;
   await loadAll();
@@ -197,7 +197,7 @@ async function submitRule() {
   if (editingRule.value) {
     await api.patch(`/api/routing-rules/${editingRule.value.id}`, ruleForm.value);
   } else {
-    await api.post('/api/routing-rules', ruleForm.value);
+    await api.post('/routing-rules', ruleForm.value);
   }
   showRuleModal.value = false;
   await loadAll();
@@ -206,7 +206,7 @@ async function submitRule() {
 async function deleteRule(id: string) { await api.delete(`/api/routing-rules/${id}`); await loadAll(); }
 
 async function testRoute() {
-  routeResult.value = await api.post<any>('/api/model-providers/route', { prompt: '测试路由', complexity: 'high' });
+  routeResult.value = await api.post('/model-providers/route', { prompt: '测试路由', complexity: 'high' });
 }
 
 onMounted(loadAll);

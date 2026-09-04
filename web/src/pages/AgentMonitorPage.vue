@@ -107,7 +107,7 @@ function formatTs(ts: number): string {
 }
 
 async function loadDashboard() {
-  dashboard.value = await api.get<any>('/api/agent-metrics/dashboard');
+  dashboard.value = await api.get('/agent-metrics/dashboard');
 }
 
 async function generateMockData() {
@@ -126,7 +126,7 @@ async function generateMockData() {
       metrics.push({ metricType: type, value: val, labels: {}, timestamp: now - i * 60000 });
     }
   }
-  await api.post('/api/agent-metrics/batch', { metrics });
+  await api.post('/agent-metrics/batch', { metrics });
   await loadDashboard();
 }
 
