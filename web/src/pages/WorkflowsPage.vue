@@ -152,7 +152,7 @@
           <h3 style="margin-top: 12px;">节点状态</h3>
           <div class="node-status-grid">
             <div v-for="(status, nodeId) in runDetail.nodesStatus || {}" :key="nodeId" class="node-status-item">
-              <span class="ns-node">{{ nodeId.slice(0, 8) }}</span>
+              <span class="ns-node">{{ String(nodeId).slice(0, 8) }}</span>
               <span :class="['badge', 'ns-' + status]">{{ status }}</span>
             </div>
           </div>

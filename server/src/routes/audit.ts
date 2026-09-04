@@ -12,8 +12,33 @@ export interface AuditEntry {
 
 /**
  * 记录一条审计日志
+ *
+ * 重载 1 (对象): logAudit({ actor, action, target_type, target_id, detail })
+ * 重载 2 (快捷): logAudit(req, action, targetType, targetId?, detail?)
  */
-export function logAudit(entry: AuditEntry): void {
+export function logAudit(
+  actorOrEntry: FastifyRequest | AuditEntry,
+  action?: string,
+  targetType?: string,
+  targetId?: string | null,
+  detail?: any,
+): void {
+  let entry: AuditEntry;
+  if (action === undefined) {
+    // 对象形式
+    entry = actorOrEntry as AuditEntry;
+  } else {
+    // 快捷形式：req, action, targetType, targetId?, detail?
+    const req = actorOrEntry as FastifyRequest;
+    const rawActor = req.headers['x-api-key'] as string | undefined;
+    entry = {
+      actor: rawActor ? `key:${rawActor.slice(0, 8)}` : 'system',
+      action: action!,
+      target_type: targetType,
+      target_id: targetId ?? undefined,
+      detail,
+    };
+  }
   try {
     getDb().prepare(
       'INSERT INTO audit_log (actor, action, target_type, target_id, detail, ts) VALUES (?, ?, ?, ?, ?, ?)'

@@ -295,7 +295,7 @@ const capabilityDistData = computed(() => {
   for (const c of capabilities.value) {
     typeMap[c.type || 'other'] = (typeMap[c.type || 'other'] || 0) + 1;
   }
-  return Object.entries(typeMap).map(([label, value]) => ({ label, value }));
+  return Object.entries(typeMap).map(([label, value]) => ({ label, value, color: '#6366f1' }));
 });
 
 // 运行状态分布

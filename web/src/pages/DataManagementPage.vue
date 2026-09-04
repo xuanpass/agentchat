@@ -96,7 +96,7 @@ async function load() {
 async function createBackup() {
   if (!newBackup.value.name.trim()) return;
   try {
-    const result = await api.post('/data-management/backups', newBackup.value);
+    const result = await api.post<{ sizeBytes: number }>('/data-management/backups', newBackup.value);
     toast.success(`备份创建成功 (${formatBytes(result.sizeBytes)})`);
     showBackupModal.value = false;
     load();
@@ -106,7 +106,7 @@ async function createBackup() {
 async function restoreBackup(b: any) {
   if (!confirm(`确认恢复备份 "${b.name}"? 当前数据将被覆盖!`)) return;
   try {
-    const result = await api.post(`/data-management/backups/${b.id}/restore`);
+    const result = await api.post<{ stats: Record<string, unknown> }>(`/data-management/backups/${b.id}/restore`);
     toast.success(`恢复成功: ${JSON.stringify(result.stats)}`);
     load();
   } catch { toast.error('恢复失败'); }

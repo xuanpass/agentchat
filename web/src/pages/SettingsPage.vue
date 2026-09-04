@@ -129,8 +129,8 @@ const { setTheme, updateSetting } = store;
 function exportData() {
   // 收集所有数据
   Promise.all([
-    api.get('/connections'),
-    api.get('/capabilities'),
+    api.get<any[]>('/connections'),
+    api.get<any[]>('/capabilities'),
   ]).then(([connections, capabilities]) => {
     const data = {
       version: '1.0',

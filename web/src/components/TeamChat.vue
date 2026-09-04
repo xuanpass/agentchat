@@ -181,7 +181,7 @@ async function send() {
   try {
     for (const connId of targets) {
       const member = members.value.find((m: any) => m.connectionId === connId);
-      const res = await api.post(`/teams/${props.team.id}/message`, {
+      const res = await api.post<{ traceId: string }>(`/teams/${props.team.id}/message`, {
         to: connId,
         payload: text,
         relay: member?.interop?.[0] ?? 'bff-bus',

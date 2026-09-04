@@ -24,7 +24,7 @@
             <input
               v-model="searchQuery"
               @focus="searchFocused = true"
-              @blur="setTimeout(() => searchFocused = false, 200)"
+              @blur="() => { (searchFocused as any) = false }"
               @input="onSearchInput"
               @keydown.enter.exact="goToSearch"
               @keydown.esc="searchQuery = ''; searchFocused = false"
@@ -132,7 +132,7 @@ import { api, getApiKey, setApiKey } from './api/client';
 import { useEventSource } from './composables/useEventSource';
 import ErrorBoundary from './components/ErrorBoundary.vue';
 import ToastHost from './components/ToastHost.vue';
-import { registerToast } from './composables/useToast';
+import { registerToast, useToast } from './composables/useToast';
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts';
 
 const toastRef = ref<InstanceType<typeof ToastHost>>();

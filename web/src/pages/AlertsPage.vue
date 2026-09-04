@@ -146,7 +146,6 @@ onMounted(() => {
 });
 
 // 监听筛选
-import { watch } from 'vue';
 watch([filterSeverity, filterAck], () => { loadAlerts(); });
 </script>
 

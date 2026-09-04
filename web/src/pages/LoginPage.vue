@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { api, setApiKey } from '../api/client.ts';
+import { api, setApiKey } from '../api/client';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();

@@ -73,7 +73,7 @@ export async function agentMetricsRoutes(app: FastifyInstance) {
 
     sql += ' ORDER BY recorded_at DESC';
     const lim = Math.min(Number(limit) || 100, 500);
-    const off = Number(req.query.offset) || 0;
+    const off = Number((req.query as Record<string, unknown>)['offset'] as string) || 0;
     sql += ' LIMIT ? OFFSET ?';
     params.push(lim, off);
     return getDb().prepare(sql).all(...params);

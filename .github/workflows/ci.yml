@@ -7,8 +7,28 @@ on:
     branches: [main, master]
 
 jobs:
+  # ── 类型检查 (必须先通过，其他 job 依赖其产出) ──
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Typecheck server (tsc)
+        run: npx tsc -p server/tsconfig.json --noEmit
+
+      - name: Typecheck web (vue-tsc)
+        run: npx vue-tsc --noEmit -p web/tsconfig.json
+
   # ── 单元测试 ──
   unit-test:
+    needs: [typecheck]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

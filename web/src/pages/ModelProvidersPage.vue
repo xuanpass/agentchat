@@ -174,7 +174,7 @@ function editProvider(p: any) {
 
 async function submitProvider() {
   const payload = { ...providerForm.value, models: providerForm.value.modelsText.split(',').map((s: string) => s.trim()).filter(Boolean) };
-  delete payload.modelsText;
+  const { modelsText, ...payloadClean } = payload;
   if (editingProvider.value) {
     await api.patch(`/api/model-providers/${editingProvider.value.id}`, payload);
   } else {

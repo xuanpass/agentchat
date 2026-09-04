@@ -173,7 +173,7 @@ async function deleteNotif(n: any) {
 
 async function cleanupOld() {
   try {
-    const result = await api.post('/notifications/cleanup', { olderThanDays: 30, readOnly: true });
+    const result = await api.post<{ deleted: number }>('/notifications/cleanup', { olderThanDays: 30, readOnly: true });
     toast.success(`清理了 ${result.deleted ?? 0} 条旧通知`);
     load();
   } catch { /* ignore */ }

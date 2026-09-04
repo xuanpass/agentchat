@@ -292,7 +292,7 @@ async function viewConfig(c: any) {
   // 从 status 端点拉取运行时状态
   try {
     const status = await api.get(`/connections/${c.id}/status`);
-    configDetail.value = { ...c, ...status };
+    configDetail.value = { ...c, ...(status as object) };
   } catch { /* 忽略 */ }
 }
 

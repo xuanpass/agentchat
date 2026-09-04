@@ -192,7 +192,7 @@ function viewProject(p: any) {
 
 async function fetchProjectRuns(projectId: string) {
   try {
-    const allRuns = await api.get('/runs?limit=100');
+    const allRuns = await api.get<any[]>('/runs?limit=100');
     projectRuns.value = allRuns.filter((r: any) =>
       r.sessionIds?.some((sid: string) =>
         selectedProject.value?.sessions?.some((s: any) => s.id === sid)

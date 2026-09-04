@@ -81,10 +81,11 @@ const dashboard = ref<any>({});
 const trendByType = computed(() => {
   const trend = dashboard.value.hourlyTrend || [];
   const types = [...new Set(trend.map((t: any) => t.metric_type))];
-  return types.map(type => {
-    const points = trend.filter((t: any) => t.metric_type === type);
+  return types.map((type: unknown) => {
+    const t = type as string;
+    const points = trend.filter((pt: any) => pt.metric_type === t);
     const values = points.map((p: any) => p.avg);
-    return { type, values, max: Math.max(...values, 1) };
+    return { type: t, values, max: Math.max(...values, 1) };
   });
 });
 

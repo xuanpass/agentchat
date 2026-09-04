@@ -191,7 +191,7 @@ async function sendMessage() {
   try {
     const result = await api.post(`/agent-chat/sessions/${currentSession.value.id}/messages`, {
       content: inputText.value.trim(),
-    });
+    }) as { userMessage: any; assistantMessage: any };
     messages.value.push(result.userMessage);
     messages.value.push(result.assistantMessage);
     inputText.value = '';

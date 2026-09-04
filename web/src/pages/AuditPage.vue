@@ -104,8 +104,8 @@ async function fetchLogs() {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: '0' });
     if (filterAction.value) params.set('action', filterAction.value);
     const data = await api.get(`/audit?${params}`);
-    logs.value = data;
-    hasMore.value = data.length >= PAGE_SIZE;
+    logs.value = data as any[];
+    hasMore.value = (data as any[]).length >= PAGE_SIZE;
   } finally {
     loading.value = false;
   }
@@ -115,9 +115,9 @@ async function loadMore() {
   offset.value += PAGE_SIZE;
   const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset.value) });
   if (filterAction.value) params.set('action', filterAction.value);
-  const data = await api.get(`/audit?${params}`);
-  logs.value = [...logs.value, ...data];
-  hasMore.value = data.length >= PAGE_SIZE;
+  const data = await api.get<any[]>(`/audit?${params}`);
+  logs.value = [...logs.value, ...(data as any[])];
+  hasMore.value = (data as any[]).length >= PAGE_SIZE;
 }
 
 async function fetchStats() {

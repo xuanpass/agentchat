@@ -22,9 +22,6 @@ import cors from '@fastify/cors';
 import compress from '@fastify/compress';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import { existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { migrate } from './db/index.js';
 import { connectionRoutes } from './routes/connections.js';
 import { sessionRoutes } from './routes/sessions.js';
@@ -136,8 +133,8 @@ async function main() {
 
   // 放行空 body 的 DELETE/PATCH 请求 (Fastify 默认拒绝 Content-Type: application/json + 空 body)
   app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
-    if (!body || (typeof body === 'string' && body.trim() === '')) return done(null, {});
-    try { done(null, JSON.parse(body)); } catch (err: any) { done(err); }
+    const parsed = (typeof body === 'string' ? JSON.parse(body) : body) as Record<string, unknown> | object;
+    done(null, parsed);
   });
 
   // 生产环境: 提供前端静态文件
