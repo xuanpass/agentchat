@@ -112,8 +112,10 @@
 
         <div class="modal-actions">
           <button class="btn btn-primary" @click="showChat = true">💬 群聊</button>
+          <button class="btn" @click="showBroadcast = true">📡 广播消息</button>
+          <button class="btn" @click="showOrchestrate = true">⚙️ 编排协作</button>
           <button class="btn" @click="selectedTeam = null">关闭</button>
-          <button class="btn btn-danger" @click="deleteTeam">删除团队</button>
+          <button class="btn btn-danger" @click="deleteTeam">删除</button>
         </div>
       </div>
     </div>
@@ -121,6 +123,75 @@
     <!-- 群聊界面 -->
     <div v-if="showChat && selectedTeam">
       <TeamChat :team="selectedTeam" @close="showChat = false" />
+    </div>
+
+    <!-- 广播消息 Modal -->
+    <div v-if="showBroadcast && selectedTeam" class="modal-overlay" @click.self="showBroadcast = false">
+      <div class="card modal modal-medium">
+        <h2>📡 广播消息 — {{ selectedTeam.name }}</h2>
+        <p class="text-muted">消息将发送给所有非 observer 成员，各自独立响应</p>
+        <div class="form-row">
+          <label>消息内容</label>
+          <textarea v-model="broadcastForm.message" placeholder="输入要广播的消息..." rows="3"></textarea>
+        </div>
+        <div v-if="broadcastResult" class="broadcast-result">
+          <h4>响应结果</h4>
+          <div v-for="r in broadcastResult.results" :key="r.connectionId" class="result-item">
+            <span class="result-role">{{ r.role }}</span>
+            <span class="result-id">{{ r.connectionId.slice(0, 12) }}</span>
+            <span :class="r.error ? 'result-error' : 'result-ok'">{{ r.error ?? r.response?.slice(0, 80) }}</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" :disabled="!broadcastForm.message || broadcasting" @click="doBroadcast">
+            {{ broadcasting ? '发送中...' : '发送广播' }}
+          </button>
+          <button class="btn" @click="showBroadcast = false">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编排协作 Modal -->
+    <div v-if="showOrchestrate && selectedTeam" class="modal-overlay" @click.self="showOrchestrate = false">
+      <div class="card modal modal-medium">
+        <h2>⚙️ 编排协作 — {{ selectedTeam.name }}</h2>
+        <p class="text-muted">串行调用成员：上一步输出作为下一步输入（支持双花括号 previous 占位符）</p>
+        <div class="form-row">
+          <label>初始提示词</label>
+          <textarea v-model="orchForm.prompt" placeholder="如: 分析这段代码的性能瓶颈..." rows="2"></textarea>
+        </div>
+        <label>执行步骤</label>
+        <div v-for="(step, idx) in orchForm.steps" :key="idx" class="orch-step">
+          <select v-model="step.connectionId">
+            <option value="">选择成员...</option>
+            <option v-for="m in availableMembers" :key="m.connectionId" :value="m.connectionId">
+              {{ roleLabel(m.role) }} · {{ m.connectionId.slice(0, 12) }}
+            </option>
+          </select>
+          <input v-model="step.promptTemplate" placeholder='prompt ({{previous}} = 上一步输出)' />
+          <button class="btn btn-sm btn-danger" @click="orchForm.steps.splice(idx, 1)">✕</button>
+        </div>
+        <button class="btn btn-sm" style="margin:8px 0" @click="orchForm.steps.push({ connectionId: '', promptTemplate: '{{previous}}' })">+ 添加步骤</button>
+        <div v-if="orchResult" class="broadcast-result">
+          <h4>执行链</h4>
+          <div v-for="c in orchResult.chain" :key="c.step" class="result-item">
+            <span class="result-step">Step {{ c.step }}</span>
+            <span class="result-role">{{ c.role }}</span>
+            <span :class="c.error ? 'result-error' : 'result-ok'">
+              {{ c.error ?? c.output?.slice(0, 60) }}
+            </span>
+          </div>
+          <div v-if="orchResult.finalContext" class="final-output">
+            <strong>最终输出：</strong>{{ orchResult.finalContext.slice(0, 200) }}
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" :disabled="!orchForm.prompt || orchForm.steps.length === 0 || orchestrating" @click="doOrchestrate">
+            {{ orchestrating ? '执行中...' : '开始编排' }}
+          </button>
+          <button class="btn" @click="showOrchestrate = false">关闭</button>
+        </div>
+      </div>
     </div>
 
     <!-- 创建团队 Modal -->
@@ -159,7 +230,16 @@ const showForm = ref(false);
 const selectedTeam = ref<any>(null);
 const showAddMember = ref(false);
 const showChat = ref(false);
+const showBroadcast = ref(false);
+const showOrchestrate = ref(false);
 const teamRuns = ref<any[]>([]);
+const broadcasting = ref(false);
+const orchestrating = ref(false);
+const broadcastResult = ref<any>(null);
+const orchResult = ref<any>(null);
+
+const broadcastForm = reactive({ message: '' });
+const orchForm = reactive({ prompt: '', steps: [{ connectionId: '', promptTemplate: '{{previous}}' }] });
 
 const form = reactive({ name: '', description: '' });
 const newMember = reactive({ connectionId: '', role: 'worker' });
@@ -260,6 +340,45 @@ function onlineCount(t: any) {
   return t.members?.filter((m: any) => m.status === 'online').length ?? 0;
 }
 
+const availableMembers = computed(() =>
+  selectedTeam.value?.members ?? []
+);
+
+async function doBroadcast() {
+  if (!selectedTeam.value || !broadcastForm.message) return;
+  broadcasting.value = true;
+  broadcastResult.value = null;
+  try {
+    broadcastResult.value = await api.post<any>(`/teams/${selectedTeam.value.id}/broadcast`, {
+      message: broadcastForm.message,
+    });
+    toast.success(`广播完成，${broadcastResult.value.results?.length ?? 0} 个成员响应`);
+  } catch (e: any) {
+    toast.error('广播失败: ' + (e.message ?? '未知错误'));
+  } finally {
+    broadcasting.value = false;
+  }
+}
+
+async function doOrchestrate() {
+  if (!selectedTeam.value || !orchForm.prompt || orchForm.steps.length === 0) return;
+  const validSteps = orchForm.steps.filter((s) => s.connectionId);
+  if (validSteps.length === 0) { toast.error('请至少选择一个成员'); return; }
+  orchestrating.value = true;
+  orchResult.value = null;
+  try {
+    orchResult.value = await api.post<any>(`/teams/${selectedTeam.value.id}/orchestrate`, {
+      prompt: orchForm.prompt,
+      steps: validSteps,
+    });
+    toast.success(`编排完成，${orchResult.value.chain?.length ?? 0} 步`);
+  } catch (e: any) {
+    toast.error('编排失败: ' + (e.message ?? '未知错误'));
+  } finally {
+    orchestrating.value = false;
+  }
+}
+
 onMounted(fetch);
 </script>
 
@@ -324,4 +443,19 @@ onMounted(fetch);
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .section-header label { margin: 0; }
+
+.orch-step { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+.orch-step select { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+.orch-step input { flex: 2; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+
+.broadcast-result { margin: 12px 0; padding: 10px; background: var(--bg); border-radius: 6px; font-size: 12px; }
+.broadcast-result h4 { margin: 0 0 8px; font-size: 13px; }
+.result-item { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.result-item:last-child { border-bottom: none; }
+.result-role { min-width: 60px; font-weight: 600; }
+.result-id { font-family: monospace; color: var(--text-muted); font-size: 11px; }
+.result-ok { color: var(--green); flex: 1; word-break: break-word; }
+.result-error { color: var(--red); flex: 1; word-break: break-word; }
+.result-step { min-width: 40px; font-weight: 600; color: var(--purple); }
+.final-output { margin-top: 8px; padding: 8px; background: var(--surface); border-radius: 4px; font-size: 12px; color: var(--text-secondary); }
 </style>
